@@ -70,9 +70,22 @@ You can also use a namespace if you want to track multiple entities, for example
 Rollie::RateLimiter.new(user_id, namespace: "user_messages", limit: 100, interval: 30000)
 ```
 
+If you don't want to block the request but do something different:
+
+```
+# limit 30 requests per second.
+twitter_rate = Rollie::RateLimiter.new("twitter_requests", limit: 30, interval: 1000)
+status = twitter_rate.add_hit # This will always count blocked regardless on how you initialzed the class
+if status.exceeded?
+  # Do Something here
+else 
+  # Do something different
+end
+```
+
 ### Counting blocked actions
 
-By default, blocked actions are not counted against the callee. This allows for the block to be executed within the
+By default, if you are using the within_limit method, blocked actions are not counted against the callee. This allows for the block to be executed within the
 rate even when there is a continuous flood of action. If you wish to change this behaviour, for example to require the callee to back off before being allowed to excute again, set this option to true.
 
 ```

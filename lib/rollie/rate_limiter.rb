@@ -41,9 +41,16 @@ module Rollie
       end
     end
 
+    def add_hit
+      Rollie.redis do |conn|
+        inc(conn, true)
+      end
+    end
+
     private
 
-    def inc(conn)
+    def inc(conn, count_blocked = nil)
+      count_blocked = count_blocked.nil? ? @count_blocked : count_blocked
       time = (Time.now.to_r * 1000000).round
       old = time - @interval
       range = conn.multi do
@@ -57,7 +64,7 @@ module Rollie
       current_count = range.length
       time_remaining = range.first.to_i - time + @interval
 
-      if exceeded && !@count_blocked
+      if exceeded && !count_blocked
         conn.zremrangebyscore(@key, time, time)
         current_count -= 1
       end
